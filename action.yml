@@ -1,0 +1,37 @@
+name: 'gh Commenter'
+description: 'Automate comments on GitHub Issues and Pull Requests. Essential Action for CI/CD, code review workflows, and efficient bot communication via webhooks.'
+author: 'rmottanet'
+branding:
+  icon: 'message-square'
+  color: 'orange'
+inputs:
+  ref_kind:
+    description: 'The type of reference: issue or pr.'
+    required: true
+  identifier:
+    description: 'The Issue/PR identifier: number (e.g., 123) or full URL.'
+    required: true
+  message_content:
+    description: 'The comment message body.'
+    required: false
+outputs:
+  completion-message:
+    description: 'A conclusion message from the script execution.'
+    value: ${{ steps.main-script.outputs.completion-message }}
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Check gh CLI'
+      run: which gh
+      
+    - name: 'Grant Execution Permission to the Script'
+      run: chmod +x ${{ github.action_path }}/commenter.sh
+      
+    - name: 'Exec Main Script'
+      id: main-script
+      shell: bash
+      run: |
+        "${{ github.action_path }}/commenter.sh" \
+          "$(echo "${{ inputs.ref_kind }}" | tr '[:upper:]' '[:lower:]')" \
+          "${{ inputs.identifier }}" \
+          "${{ inputs.message_content }}"
